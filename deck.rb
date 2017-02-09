@@ -18,10 +18,6 @@ class Deck
     cards.shift
   end
 
-  def dry?
-    cards.empty?
-  end
-
   def shuffle!
     cards.shuffle!
   end

@@ -7,7 +7,7 @@ class Card
   end
 
   def self.suits
-    %w(Clubs Diamonds Hearts Spades)
+    %w(♣ ♢ ♡ ♠)
   end
 
   attr_accessor :face, :suit, :value
@@ -32,6 +32,11 @@ class Card
     else
       super(other)
     end
+  end
+
+
+  def to_s
+    " a #{face} of #{suit},"
   end
 
 end
