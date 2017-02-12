@@ -12,4 +12,13 @@ module Score
   def dealer_score
     @dealer_score ||= 0
   end
+
+  def winner
+      puts "You've won #{@player_score} out of #{@hands}. Cash me ousside, how bou dah?"
+  end
+
+  def loser
+    puts "You've lost #{@player_score} out of #{@hands}."
+  end
+
 end

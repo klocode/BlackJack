@@ -1,3 +1,5 @@
+require_relative 'deck'
+
 class Shoe < Deck
   def create
     7.times { super }

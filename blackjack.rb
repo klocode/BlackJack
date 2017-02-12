@@ -1,4 +1,3 @@
-require_relative 'deck'
 require_relative 'shoe'
 require_relative 'score'
 require 'tty'
@@ -29,14 +28,15 @@ class Game
     self.class.hands += 1
     deal
     player_hand
-    ace(p1_hand)
+    ace(p1_hand) unless blackjack?(p1_hand)
     player_move unless blackjack?(cpu_hand)
     dealer_hand
+    dealer_ace(cpu_hand) unless blackjack?(cpu_hand)
     dealer_move
     outcome
   end
 
-# Game logic/setup
+### Game logic/setup
 
   def player_hand
     puts "You have a total of #{value(p1_hand)} "
@@ -56,7 +56,7 @@ class Game
 
   def player_move
     stay = false
-    until bust(p1_hand) || stay
+    until bust(p1_hand) || stay || blackjack?(p1_hand)
       move = prompt.select("What would you like to do?", %w(Hit Stay)).downcase
       case move
       when "hit"
@@ -75,13 +75,21 @@ class Game
       if value(cpu_hand) >= 16
       puts "Dealer stays with #{value(cpu_hand)}"
       stay = true
-    elsif value(cpu_hand) < 16
+      elsif value(cpu_hand) < 16
         puts "Dealer hits"
         cpu_hand << deck.draw
         dealer_hand
       end
+      dealer_ace(cpu_hand)
     end
   end
+
+  # def hit_or_stay(hand)
+  #   stay = false
+  #   until bust(hand) || stay || blackjack?(hand)
+  #   end
+  #
+  # end
 
   def ace(hand)
     hand.each do |card|
@@ -94,15 +102,35 @@ class Game
           card.value = 11
         end
       end
+      if bust(hand)
+        card.value = 1
+        player_move
+      end
     end
   end
 
+# not working correctly
+# soft 17 not working (seems to work now) but what happens if I draw an ace later in the round
+  def dealer_ace(hand)
+    hand.each do |card|
+      if card.face == "A"
+        if value(hand) <= 17
+          card.value = 1
+        else
+          card.value = 11
+        end
+      end
+    end
+  end
 
-  # Compare methods
+  ### Compare methods
 
   def amount(hand)
     hand.length
   end
+
+# If player and dealer both get blackjack, it's automatically making dealer win
+# Seems fixed for now by added the unless in play method
 
   def blackjack?(hand)
     amount(hand)== 2 && value(hand) == 21
@@ -134,7 +162,7 @@ class Game
   end
 
 
-# Win conditions
+### Win conditions
 
 
   def outcome
@@ -177,17 +205,17 @@ class Game
   end
 
   def ask_for_rematch
-    desire = prompt.yes?("Would you like to play another hand?\n")
-    if desire
+    choice = prompt.yes?("Would you like to play another hand?\n")
+    if choice
       Game.new.play
+    elsif self.class.player_score > 2*self.class.player_score
+      self.class.winner
     else
-      puts "Thanks for playing, you have won #{self.class.player_score} games out of #{self.class.hands}. Dealer won #{self.class.dealer_score} games."
+      puts "Thanks for playing, you have won #{self.class.player_score} games out of #{self.class.hands}."
       exit
     end
   end
 end
 
-#write class method to keep tally every time game is run
-#shoe new class and 7 super deck
 
 Game.new.play
