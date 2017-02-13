@@ -1,7 +1,6 @@
 require_relative 'card'
 
 class Deck
-
   attr_accessor :cards
 
   def initialize
@@ -25,5 +24,4 @@ class Deck
   def shuffle!
     cards.shuffle!
   end
-
 end
