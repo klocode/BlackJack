@@ -46,7 +46,6 @@ class Game
     puts "You have a total of #{value(p1_hand)} "
     puts 'Your hand is:'
     p1_hand.each do |card|
-      # how is this calling to_s?
       puts card
     end
     puts "The dealer currently showing is #{cpu_hand[1]}"
@@ -225,4 +224,3 @@ class Game
 end
 
 Game.new.play
-
