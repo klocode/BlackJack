@@ -18,7 +18,7 @@ module Score
   end
 
   def loser
-    puts "GTFO"
+    puts "CATCH THESE HANDS BOY"
   end
 
 end

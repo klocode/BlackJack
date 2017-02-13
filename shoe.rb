@@ -1,7 +1,7 @@
 require_relative 'deck'
 
 class Shoe < Deck
-  def create
+  def deal
     7.times { super }
   end
 end

@@ -73,10 +73,10 @@ class Game
   def dealer_move
     stay = false
     until bust(cpu_hand) || blackjack?(p1_hand) || stay || bust(p1_hand)
-      if value(cpu_hand) > 17
+      if value(cpu_hand) >= 17
       puts "Dealer stays with #{value(cpu_hand)}"
       stay = true
-      elsif value(cpu_hand) < 16
+    elsif value(cpu_hand) <= 16
         puts "Dealer hits"
         cpu_hand << deck.draw
         dealer_ace(cpu_hand)
@@ -218,4 +218,4 @@ class Game
 end
 
 
-Game.new.play
+# Game.new.play
