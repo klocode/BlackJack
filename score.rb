@@ -14,11 +14,10 @@ module Score
   end
 
   def winner
-      puts "You've won #{@player_score} out of #{@hands}. Cash you ousside, how bou dah?"
+    puts "You've won #{@player_score} out of #{@hands}. Cash you ousside, how bou dah?"
   end
 
   def loser
-    puts "GTFO"
+    puts 'GTFO'
   end
-
 end

@@ -1,9 +1,8 @@
 class Card
-
   include Comparable
 
   def self.faces
-    ("2".."10").to_a + %w(J Q K A)
+    ('2'..'10').to_a + %w(J Q K A)
   end
 
   def self.suits
@@ -19,9 +18,8 @@ class Card
   end
 
   def find_value
-    case
-    when face.to_i != 0 then face.to_i
-    when face == "A" then 11
+    if face.to_i != 0 then face.to_i
+    elsif face == 'A' then 11
     else 10
     end
   end
@@ -34,10 +32,8 @@ class Card
     end
   end
 
-
   def to_s
-    #removed comma as it would also add it for the last item
+    # removed comma as it would also add it for the last item
     " a #{face} of #{suit}"
   end
-
 end
