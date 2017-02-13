@@ -28,10 +28,8 @@ class Game
     self.class.hands += 1
     deal
     player_hand
-    ace(p1_hand) unless blackjack?(p1_hand)
     player_move unless blackjack?(cpu_hand)
     dealer_hand
-    dealer_ace(cpu_hand) unless blackjack?(cpu_hand)
     dealer_move
     outcome
   end
@@ -61,6 +59,7 @@ class Game
       case move
       when "hit"
         p1_hand << deck.draw
+        ace(p1_hand)
         player_hand
       when "stay"
         puts "You're choosing to stay with a total of #{value(p1_hand)}."
@@ -69,21 +68,24 @@ class Game
     end
   end
 
+#Need to test and fix: if dealer has 16 with an ace he stays
+
   def dealer_move
     stay = false
     until bust(cpu_hand) || blackjack?(p1_hand) || stay || bust(p1_hand)
-      if value(cpu_hand) >= 16
+      if value(cpu_hand) > 17
       puts "Dealer stays with #{value(cpu_hand)}"
       stay = true
       elsif value(cpu_hand) < 16
         puts "Dealer hits"
         cpu_hand << deck.draw
+        dealer_ace(cpu_hand)
         dealer_hand
       end
-      dealer_ace(cpu_hand)
     end
   end
 
+  #attempting to make a method for moves
   # def hit_or_stay(hand)
   #   stay = false
   #   until bust(hand) || stay || blackjack?(hand)
@@ -102,19 +104,15 @@ class Game
           card.value = 11
         end
       end
-      if bust(hand)
-        card.value = 1
-        player_move
-      end
     end
   end
 
 # not working correctly
-# soft 17 not working (seems to work now) but what happens if I draw an ace later in the round
+# soft 17 not working (seems to work now) but what happens if I draw an ace later in the round??
   def dealer_ace(hand)
     hand.each do |card|
       if card.face == "A"
-        if value(hand) <= 17
+        if value(hand) <= 17 || bust(hand)
           card.value = 1
         else
           card.value = 11
@@ -129,7 +127,7 @@ class Game
     hand.length
   end
 
-# If player and dealer both get blackjack, it's automatically making dealer win
+# Need to fix: If player and dealer both get blackjack, it's automatically making dealer win
 # Seems fixed for now by added the unless in play method
 
   def blackjack?(hand)
@@ -208,8 +206,10 @@ class Game
     choice = prompt.yes?("Would you like to play another hand?\n")
     if choice
       Game.new.play
-    elsif self.class.player_score > 2*self.class.player_score
+    elsif self.class.player_score > 2*self.class.dealer_score
       self.class.winner
+    elsif self.class.player_score < 2*self.class.dealer_score
+      self.class.loser
     else
       puts "Thanks for playing, you have won #{self.class.player_score} games out of #{self.class.hands}."
       exit
