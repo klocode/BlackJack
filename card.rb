@@ -36,7 +36,8 @@ class Card
 
 
   def to_s
-    " a #{face} of #{suit},"
+    #removed comma as it would also add it for the last item
+    " a #{face} of #{suit}"
   end
 
 end

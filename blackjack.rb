@@ -16,6 +16,7 @@ class Game
     @prompt = TTY::Prompt.new
     @p1_hand = []
     @cpu_hand = []
+    @details = "You win!"
   end
 
   def deal
@@ -28,8 +29,12 @@ class Game
   def play
     self.class.hands += 1
     deal
+    # added the blackjack condition here because
+    # it'll run this before checking player_hand
+    # for blackjack
+    blackjack?(cpu_hand)
     player_hand
-    player_move unless blackjack?(cpu_hand)
+    player_move #unless blackjack?(cpu_hand)
     dealer_hand
     dealer_move
     outcome
@@ -41,6 +46,7 @@ class Game
     puts "You have a total of #{value(p1_hand)} "
     puts "Your hand is:"
     p1_hand.each do |card|
+      # how is this calling to_s?
       puts card
     end
     puts "The dealer currently showing is #{cpu_hand[1]}"
@@ -55,7 +61,7 @@ class Game
 
   def player_move
     stay = false
-    until bust(p1_hand) || stay || blackjack?(p1_hand)
+    until bust?(p1_hand) || stay || blackjack?(p1_hand)
       move = prompt.select("What would you like to do?", %w(Hit Stay)).downcase
       case move
       when "hit"
@@ -73,7 +79,7 @@ class Game
 
   def dealer_move
     stay = false
-    until bust(cpu_hand) || blackjack?(p1_hand) || stay || bust(p1_hand)
+    until bust?(cpu_hand) || blackjack?(p1_hand) || stay || bust?(p1_hand)
       if value(cpu_hand) > 17
       puts "Dealer stays with #{value(cpu_hand)}"
       stay = true
@@ -85,14 +91,6 @@ class Game
       end
     end
   end
-
-  #attempting to make a method for moves
-  # def hit_or_stay(hand)
-  #   stay = false
-  #   until bust(hand) || stay || blackjack?(hand)
-  #   end
-  #
-  # end
 
   def ace(hand)
     hand.each do |card|
@@ -108,12 +106,11 @@ class Game
     end
   end
 
-# not working correctly
 # soft 17 not working (seems to work now) but what happens if I draw an ace later in the round??
   def dealer_ace(hand)
     hand.each do |card|
       if card.face == "A"
-        if value(hand) <= 17 || bust(hand)
+        if value(hand) <= 17 || bust?(hand)
           card.value = 1
         else
           card.value = 11
@@ -122,14 +119,10 @@ class Game
     end
   end
 
-  ### Compare methods
-
+  ### Comparable methods
   def amount(hand)
     hand.length
   end
-
-# Need to fix: If player and dealer both get blackjack, it's automatically making dealer win
-# Seems fixed for now by added the unless in play method
 
   def blackjack?(hand)
     amount(hand)== 2 && value(hand) == 21
@@ -139,7 +132,7 @@ class Game
     hand.inject(0){|sum, card| sum + card.value}
   end
 
-  def bust(hand)
+  def bust?(hand)
     value(hand) > 21
   end
 
@@ -160,46 +153,63 @@ class Game
     end
   end
 
-
-### Win conditions
-
-
+  # set and display outcome of the game
   def outcome
-    if !bust(p1_hand) && amount(p1_hand) == 6
-      puts "You win!"
-      self.class.player_score += 1
+    if player_wins?(p1_hand, cpu_hand) == true
+      puts @details
       ask_for_rematch
-    elsif bust(p1_hand)
-      puts "Sorry you busted, Dealer wins with #{value(cpu_hand)}"
-      self.class.dealer_score += 1
-      ask_for_rematch
-    elsif bust(cpu_hand)
-      puts "Dealer busted! You win!!"
-      self.class.player_score += 1
-      ask_for_rematch
-    elsif amount(cpu_hand) == 2 && value(cpu_hand) == 21
-      puts "You lost! Dealer got BlackJack!"
-      self.class.dealer_score += 1
-      ask_for_rematch
-    elsif amount(p1_hand) == 2 && value(p1_hand) == 21
-      puts "You win! You got BlackJack!"
-      self.class.player_score += 1
-      ask_for_rematch
-    elsif value(p1_hand) > value(cpu_hand)
-      puts "You win! You had a higher value than the Dealer."
-      self.class.player_score += 1
-      ask_for_rematch
-    elsif value(cpu_hand) > value(p1_hand)
-      puts "You lost! Dealer has higher value"
-      self.class.dealer_score += 1
+    elsif cpu_wins?(p1_hand, cpu_hand) == true
+      puts @details
       ask_for_rematch
     elsif tie
       tie_breaker
       ask_for_rematch
     else
-      puts "You win!"
+      puts @details
       self.class.player_score += 1
       ask_for_rematch
+    end
+  end
+
+  # winning conditions for player.
+  def player_wins?(p1_hand, cpu_hand)
+    if !bust?(p1_hand) && amount(p1_hand) == 6
+      @details = "You win!"
+      self.class.player_score += 1
+      return true
+    elsif bust?(cpu_hand)
+      @details = "Dealer busted! You win!!"
+      self.class.player_score += 1
+      return true
+    elsif amount(p1_hand) == 2 && value(p1_hand) == 21
+      @details = "You win! You got BlackJack!"
+      self.class.player_score += 1
+      return true
+    elsif value(p1_hand) > value(cpu_hand) && value(p1_hand) <= 21
+      @details = "You win! You had a higher value than the Dealer."
+      self.class.player_score += 1
+      return true
+    else
+      return false
+    end
+  end
+
+  # winning conditions for cpu
+  def cpu_wins?(p1_hand, cpu_hand)
+    if bust?(p1_hand)
+      @details = "Sorry you busted, Dealer wins with #{value(cpu_hand)}"
+      self.class.dealer_score += 1
+      return true
+    elsif amount(cpu_hand) == 2 && value(cpu_hand) == 21
+      @details = "You lost! Dealer got BlackJack!"
+      self.class.dealer_score += 1
+      return true
+    elsif value(cpu_hand) > value(p1_hand) && value(cpu_hand) <= 21
+      @details = "You lost! Dealer has higher value"
+      self.class.dealer_score += 1
+      return true
+    else
+      return false
     end
   end
 
@@ -207,9 +217,9 @@ class Game
     choice = prompt.yes?("Would you like to play another hand?\n")
     if choice
       Game.new.play
-    elsif self.class.player_score > 2*self.class.dealer_score
+    elsif self.class.player_score > (2 * self.class.dealer_score)
       self.class.winner
-    elsif self.class.player_score < 2*self.class.dealer_score
+    elsif self.class.player_score < (2 * self.class.dealer_score)
       self.class.loser
     else
       puts "Thanks for playing, you have won #{self.class.player_score} games out of #{self.class.hands}."
