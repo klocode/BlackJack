@@ -11,6 +11,7 @@ class Game
                 :prompt
 
   def initialize
+    #little confusing to say that this is the deck, not a shoe..
     @deck = Shoe.new
     @prompt = TTY::Prompt.new
     @p1_hand = []
